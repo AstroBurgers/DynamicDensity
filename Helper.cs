@@ -2,7 +2,7 @@
 
 namespace DynamicDensity;
 
-internal class Helper
+internal static class Helper
 {
     internal static Ped MainPlayer => Game.LocalPlayer.Character;
 }

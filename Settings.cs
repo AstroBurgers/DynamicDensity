@@ -50,11 +50,11 @@ internal static class Settings
 
     #endregion
 
-    internal static InitializationFile Inifile;
+    private static InitializationFile Inifile;
     
     internal static void SetupIniFile()
     {
-        Inifile = new InitializationFile(@"Plugins/DynamicDensity.ini");
+        Inifile = new InitializationFile("Plugins/DynamicDensity.ini");
         Inifile.Create();
         // INI File items
         MRushStart = Inifile.ReadInt32("Settings", "Morning Rush Start", MRushStart);
