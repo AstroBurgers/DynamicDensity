@@ -14,10 +14,10 @@ internal static class Process
                 continue;
             }
             // IN 24H FORMAT
-            var gameTime = World.DateTime;
-            bool isMorningRush = gameTime.Hour >= Settings.MRushStart && gameTime.Hour <= Settings.MRushEnd;
-            bool isLunchRush = gameTime.Hour >= Settings.LRushStart && gameTime.Hour <= Settings.LRushEnd;
-            bool isEveningRush = gameTime.Hour >= Settings.ERushStart && gameTime.Hour <= Settings.ERushEnd;
+            var gameTime = World.TimeOfDay;
+            bool isMorningRush = gameTime.Hours >= Settings.MRushStart && gameTime.Hours <= Settings.MRushEnd;
+            bool isLunchRush = gameTime.Hours >= Settings.LRushStart && gameTime.Hours <= Settings.LRushEnd;
+            bool isEveningRush = gameTime.Hours >= Settings.ERushStart && gameTime.Hours <= Settings.ERushEnd;
             int currentWeather = NativeFunction.Natives.GET_PREV_WEATHER_TYPE_HASH_NAME<int>();
 
             // airport
