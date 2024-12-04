@@ -1,4 +1,5 @@
-﻿using Rage;
+﻿using System;
+using Rage;
 using Rage.Native;
 
 namespace DynamicDensity;
@@ -10,67 +11,43 @@ internal static class Process
         while (true)
         {
             GameFiber.Yield();
-            if (!Helper.MainPlayer.Exists()) {
+            if (!Helper.MainPlayer.Exists()) 
                 continue;
-            }
-            // IN 24H FORMAT
+            
             var gameTime = World.TimeOfDay;
-            bool isMorningRush = gameTime.Hours >= Settings.MRushStart && gameTime.Hours <= Settings.MRushEnd;
-            bool isLunchRush = gameTime.Hours >= Settings.LRushStart && gameTime.Hours <= Settings.LRushEnd;
-            bool isEveningRush = gameTime.Hours >= Settings.ERushStart && gameTime.Hours <= Settings.ERushEnd;
+            bool isRushHour = IsRushHour(gameTime);
             int currentWeather = NativeFunction.Natives.GET_PREV_WEATHER_TYPE_HASH_NAME<int>();
+            
+            float pedMultiplier = GetDensityMultiplier(
+                isRushHour ? (float)Settings.RushPedMult : (float)Settings.NotRushPedMult,
+                currentWeather
+            );
 
-            // airport
-            // Lsquare
-            // Casino
-            // Unused^
-
-            if (isMorningRush || isLunchRush || isEveningRush)
-            {
-                switch (currentWeather)
-                {
-                    case (int)WeatherType.Rain:
-                    case (int)WeatherType.Thunder:
-                    case (int)WeatherType.Clearing:
-                        NativeFunction.Natives.SET_PED_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.RushPedMult * (float)Settings.RainPedMult);
-                        NativeFunction.Natives.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.RushVehMult * (float)Settings.RainVehMult);
-                        break;
-                    case (int)WeatherType.Snow:
-                    case (int)WeatherType.Snowlight:
-                    case (int)WeatherType.Blizzard:
-                    case (int)WeatherType.Xmas:
-                        NativeFunction.Natives.SET_PED_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.RushPedMult * (float)Settings.SnowPedMult);
-                        NativeFunction.Natives.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.RushVehMult * (float)Settings.SnowVehMult);
-                        break;
-                    default:
-                        NativeFunction.Natives.SET_PED_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.RushPedMult);
-                        NativeFunction.Natives.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.RushVehMult);
-                        break;
-                }
-            }
-            else
-            {
-                switch (currentWeather)
-                {
-                    case (int)WeatherType.Rain:
-                    case (int)WeatherType.Thunder:
-                    case (int)WeatherType.Clearing:
-                        NativeFunction.Natives.SET_PED_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.NotRushPedMult * (float)Settings.RainPedMult);
-                        NativeFunction.Natives.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.NotRushVehMult * (float)Settings.RainVehMult);
-                        break;
-                    case (int)WeatherType.Snow:
-                    case (int)WeatherType.Snowlight:
-                    case (int)WeatherType.Blizzard:
-                    case (int)WeatherType.Xmas:
-                        NativeFunction.Natives.SET_PED_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.NotRushPedMult * (float)Settings.SnowPedMult);
-                        NativeFunction.Natives.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.NotRushVehMult * (float)Settings.SnowVehMult);
-                        break;
-                    default:
-                        NativeFunction.Natives.SET_PED_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.NotRushPedMult);
-                        NativeFunction.Natives.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME((float)Settings.NotRushVehMult);
-                        break;
-                }
-            }
+            float vehMultiplier = GetDensityMultiplier(
+                isRushHour ? (float)Settings.RushVehMult : (float)Settings.NotRushVehMult,
+                currentWeather
+            );
+            
+            NativeFunction.Natives.SET_PED_DENSITY_MULTIPLIER_THIS_FRAME(pedMultiplier);
+            NativeFunction.Natives.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME(vehMultiplier);
         }
+    }
+
+    private static bool IsRushHour(TimeSpan time)
+    {
+        return (time.Hours >= Settings.MRushStart && time.Hours <= Settings.MRushEnd) ||
+               (time.Hours >= Settings.LRushStart && time.Hours <= Settings.LRushEnd) ||
+               (time.Hours >= Settings.ERushStart && time.Hours <= Settings.ERushEnd);
+    }
+
+    private static float GetDensityMultiplier(float baseMultiplier, int weather)
+    {
+        float weatherMultiplier = weather switch
+        {
+            (int)WeatherType.Rain or (int)WeatherType.Thunder or (int)WeatherType.Clearing => (float)Settings.RainPedMult,
+            (int)WeatherType.Snow or (int)WeatherType.Snowlight or (int)WeatherType.Blizzard or (int)WeatherType.Xmas => (float)Settings.SnowPedMult,
+            _ => 1f
+        };
+        return baseMultiplier * weatherMultiplier;
     }
 }

@@ -36,7 +36,7 @@
     <ItemGroup>
         <Reference Include="Microsoft.CSharp" />
         <Reference Include="RagePluginHook">
-          <HintPath>..\..\..\..\References\RagePluginHookSDK.dll</HintPath>
+          <HintPath>C:\Users\steve\Desktop\References\RagePluginHook.dll</HintPath>
         </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
